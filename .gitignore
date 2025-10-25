@@ -1,6 +1,9 @@
 # ignore google sdk cli folder
 google*
 
+# ignore GCP iam user credentials
+kubernetes-476211-c90321c78c4a.json
+
 # Local .terraform directories
 .terraform/
 
