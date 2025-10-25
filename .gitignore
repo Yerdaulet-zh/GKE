@@ -1,3 +1,6 @@
+# ignore google sdk cli folder
+google*
+
 # Local .terraform directories
 .terraform/
 
