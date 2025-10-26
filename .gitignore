@@ -4,6 +4,12 @@ google*
 # ignore GCP iam user credentials
 kubernetes-476211-c90321c78c4a.json
 
+# ignore backend.tf
+*/backend.tf
+
+# ignore tf.lock
+*/.terraform.lock.hcl
+
 # Local .terraform directories
 .terraform/
 
