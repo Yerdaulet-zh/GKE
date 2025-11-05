@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-external-l4-service
+  annotations:
+    # Recommended: Enables the modern Backend Service-based L4 Load Balancer
+    cloud.google.com/l4-rbs: "enabled"
+    
+    # Optional: Enable Weighted Load Balancing (requires GKE 1.31.0+ and cloud.google.com/l4-rbs: "enabled")
+    # This automatically uses 'pods-per-node' as the weight, effectively prioritizing nodes with more ready pods.
+    networking.gke.io/weighted-load-balancing: pods-per-node
+    
+spec:
+  # This provisions an External Passthrough Network Load Balancer (L4) on GCP
+  type: LoadBalancer
+  
+  # Selects the pods created by the Deployment above (where label 'app: nginx' is present)
+  selector:
+    app: nginx 
+    
+  # Policy to route traffic only to pods on the node that receives the traffic. 
+  # This preserves the client's source IP address and is required for weighted load balancing.
+  externalTrafficPolicy: Local
+
+  ports:
+    - protocol: TCP
+      name: http
+      # The port the Load Balancer listens on (External Port: 80)
+      port: 80 
+      # The port on the Pod that the service forwards traffic to (NGINX default: 80)
+      targetPort: 80
+    - protocol: TCP
+      name: https
+      # The port the Load Balancer listens on (External Port: 443)
+      port: 443 
+      # The port on the Pod that the service forwards traffic to (NGINX default: 80)
+      targetPort: 443
