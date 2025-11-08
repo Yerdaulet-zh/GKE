@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-l4-deployment
+  name: nginx-deployment
   labels:
-    app: nginx
+    app: nginx-deployment
 spec:
   # Define the desired number of NGINX pods
-  replicas: 5
+  replicas: 2
   selector:
     matchLabels:
-      app: nginx
+      app: nginx-deployment
   template:
     metadata:
       labels:
@@ -22,6 +22,16 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+
+        # --- RESOURCE SPECIFICATION ---
+        resources:
+          requests:
+            cpu: "50m"    # Request 0.1 CPU core (100 millicores)
+            memory: "64Mi" # Request 64 Mebibytes of RAM
+          limits:
+            cpu: "110m"     # Limit to 0.25 CPU core
+            memory: "128Mi" # Limit to 128 Mebibytes of RAM
+
         # Simple health check to ensure the pod is ready to receive traffic
         livenessProbe:
           httpGet:
@@ -34,4 +44,15 @@ spec:
             path: /
             port: 80
           initialDelaySeconds: 5
-          periodSeconds: 
+          periodSeconds: 5
+        # nodeSelector: # <-- REPLACE THIS BLOCK
+        #   team: devops
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: team
+                operator: In
+                values:
+                - devops # Hard requirement: MUST run on a node labeled team: devops

@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ingress-controller-deployment
+  namespace: ingress-nginx-controller-production
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
+spec:
+  selector:
+    matchLabels:
+      labels:
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/instance: ingress-nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/instance: ingress-nginx
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: team
+                operator: In
+                values:
+                - devops # Hard requirement: MUST run on a node labeled team: devops
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "ingress-nginx"
+          effect: "NoSchedule"
+
+      # Recommended: Give ingress controller high priority
+      priorityClassName: system-cluster-critical 
+
+      serviceAccountName: ingress-nginx # Required by official controller (ensure it's created)
+      
+      containers:
+      - name: controller
+        image: registry.k8s.io/ingress-nginx/controller:v1.12.8@sha256:8f8343060688fb2a85752b7345a988d0d3c890d774e18e80b9e8730756e5b530
+        args:
+          - /nginx-ingress-controller
+          - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
+          - --tcp-services-configmap=$(POD_NAMESPACE)/ingress-nginx-controller-tcp
+          - --udp-services-configmap=$(POD_NAMESPACE)/ingress-nginx-controller-udp
+          - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller
+          - --election-id=ingress-nginx-leader
+          - --ingress-class=nginx
+          - --watch-namespace=default
+        
+        # --- ENTERPRISE RESOURCE SPECIFICATION (YOUR CUSTOM CONFIG) ---
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "110m"
+            memory: "130Mi"
+
+        # --- HEALTH CHECKS ---
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readynessProbe:
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        # Ports the NGINX proxy listens on
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        - name: https
+          containerPort: 443
+          protocol: TCP
+           
+        
+

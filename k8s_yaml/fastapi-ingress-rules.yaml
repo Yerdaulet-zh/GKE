@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-ingress
+  namespace: default
+  annotations:
+    # CRITICAL: Tells the controller to use the NGINX Ingress Class
+    kubernetes.io/ingress.class: "nginx" 
+    
+    # CRITICAL for WebSockets: Sets the timeout to prevent disconnection during inactivity
+    # This must be equal to or greater than your client-side WebSocket timeout.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600" # 1 hour
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600" # 1 hour
+    
+    # Optional: Enable NGINX compression for specific content types (e.g., text)
+    nginx.ingress.kubernetes.io/enable-compression: "true"
+    nginx.ingress.kubernetes.io/gzip-types: "text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript"
+    
+spec:
+  rules:
+  - host: api.your-domain.com # <--- REPLACE with your actual domain
+    http:
+      paths:
+      - path: /api/ws         # Your WebSocket path
+        pathType: Prefix      # Matches /api/ws and anything under it (e.g., /api/ws/v1)
+        backend:
+          service:
+            name: fastapi-app-service # <--- Your FastAPI ClusterIP Service
+            port:
+              number: 8080            # FastAPI's target port
+  
+  # --- TLS TERMINATION ---
+  # NGINX will handle TLS termination using this secret.
+  tls:
+  - hosts:
+    - api.your-domain.com
+    secretName: fastapi-tls-secret # <--- REPLACE with the name of your TLS Secret
