@@ -82,7 +82,7 @@ resource "google_artifact_registry_repository_iam_member" "fastapi_ai_reader" {
   project    = data.google_artifact_registry_repository.fastapi_ai_repo.project
   location   = data.google_artifact_registry_repository.fastapi_ai_repo.location
   repository = data.google_artifact_registry_repository.fastapi_ai_repo.repository_id
-  
+
   role   = "roles/artifactregistry.reader"
   member = "serviceAccount:${google_service_account.gke_node_sa.email}"
 }

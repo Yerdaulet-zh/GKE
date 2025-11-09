@@ -9,7 +9,7 @@ resource "google_container_node_pool" "nginx" {
   # node_locations = [
   #   var.cluster_location
   # ]
-
+  max_pods_per_node = 120
   initial_node_count = 1
 
   autoscaling {
