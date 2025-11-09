@@ -29,9 +29,9 @@ class Status(BaseModel):
 # --- Liveness and Readiness Probes ---
 
 # Liveness Probe (for K8s health checks)
-@app.get("/healthz", response_model=Status, tags=["Probes"], 
+@app.get("/health", response_model=Status, tags=["Probes"], 
          summary="Liveness Check")
-async def healthz():
+async def health():
     """
     Indicates the service is alive. 
     If this fails, K8s should restart the pod.

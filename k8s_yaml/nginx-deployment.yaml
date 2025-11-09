@@ -52,7 +52,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: team
+              - key: app
                 operator: In
                 values:
-                - devops # Hard requirement: MUST run on a node labeled team: devops
+                - reverse-proxy # Hard requirement: MUST run on a node labeled team: reverse-proxy
