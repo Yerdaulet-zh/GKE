@@ -17,7 +17,7 @@ resource "google_compute_instance" "bastion" {
     subnetwork = google_compute_subnetwork.subnets["subnet_2"].id
 
     # ADDING THIS BLOCK ASSIGNS AN EPHEMERAL PUBLIC IP
-    access_config {}
+    # access_config {}
   }
 
   #   metadata = {

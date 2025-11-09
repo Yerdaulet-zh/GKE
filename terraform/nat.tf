@@ -27,7 +27,6 @@ resource "google_compute_router" "router" {
 #   }
 # }
 
-
 resource "google_compute_router_nat" "nat" {
   name                               = "gke-regional-nat-gateway-europe-west8"
   router                             = google_compute_router.router.name

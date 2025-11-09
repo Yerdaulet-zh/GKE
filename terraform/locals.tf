@@ -19,6 +19,7 @@ locals {
   node_oauth_scopes = [
     "https://www.googleapis.com/auth/devstorage.read_only", # Required for pulling images from Artifact Registry (AR) & Google Container Registry (GCR)
     "https://www.googleapis.com/auth/logging.write",
+    "https://www.googleapis.com/auth/monitoring",
     "https://www.googleapis.com/auth/monitoring.write",
     "https://www.googleapis.com/auth/service.management.readonly", # Both required by GKE for service management
     "https://www.googleapis.com/auth/servicecontrol"

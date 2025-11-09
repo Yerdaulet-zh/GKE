@@ -1,0 +1,48 @@
+# 1. service-nlb-neg.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: l4-nlb-neg-service
+  annotations:
+    # CRITICAL: Enable Container-Native Load Balancing (NEGs)
+    # This instructs GKE to create a Network Endpoint Group using Pod IPs as backends.
+    # This bypasses the NodePort layer for optimal L4 routing.
+    cloud.google.com/neg: '{"exposed": true}' 
+    
+    # GKE Annotation for Backend Service-based NLB (Recommended for modern clusters)
+    # This ensures a more flexible NLB type that is required for features like session affinity.
+    cloud.google.com/l4-rbs: "enabled"
+    
+    # Optional: Reserve a static external IP address (Replace with your actual IP name)
+    # networking.gke.io/external-ip: "my-static-nlb-ip-name"
+    
+    # Optional: Recommended for better health check handling
+    cloud.google.com/service-healthcheck: '{"enabled": true}'
+    
+    # Optional: Configure L4 Client IP Session Affinity (for WebSockets persistence)
+    # Sets session affinity based on client IP for up to 300 seconds.
+    # cloud.google.com/session-affinity-timeout: "300" 
+    
+spec:
+  # --- 1. CORE SERVICE DEFINITION ---
+  selector:
+    app: nginx   # Must match the label on your Nginx reverse proxy Pods
+  type: LoadBalancer 
+  
+  ports:
+  - name: https
+    protocol: TCP
+    port: 443         # The external port clients connect to (e.g., wss://...)
+    targetPort: 443   # The port Nginx is listening on inside the Pod (Nginx should handle TLS here)
+    
+  # --- 2. PERFORMANCE & SOURCE IP PRESERVATION ---
+  # CRITICAL: Preserves the original client source IP. Also required for L4 Load Balancer 
+  # to correctly implement source IP-based session affinity (if enabled).
+  externalTrafficPolicy: Local
+  
+  # --- 3. ENTERPRISE SECURITY (Firewall Restriction) ---
+  # CRITICAL: Restricts the NLB's external access by programming a firewall rule 
+  # on the GCP forwarding rule to ONLY allow traffic from these CIDR blocks.
+  loadBalancerSourceRanges:
+  - "203.0.113.0/24"    # Example: Your corporate office/VPN network
+  - "198.51.100.10/32"  # Example: A specific partner's public IP

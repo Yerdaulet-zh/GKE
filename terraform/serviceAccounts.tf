@@ -54,7 +54,7 @@ resource "google_service_account_iam_member" "wi_binding_gsa_ksa" {
   member = "serviceAccount:${var.project_id}.svc.id.goog[${var.kubernetes_namespace}/${var.kubernetes_service_account_name}]"
 }
 
-# NODE POOL Service Account 
+# --- NODE POOL Service Account ---  
 resource "google_service_account" "gke_node_sa" {
   disabled                     = false
   project                      = var.project_id
@@ -74,4 +74,15 @@ resource "google_project_iam_member" "gke_node_sa" {
   for_each = toset(local.node_pool_roles)
   role     = each.key
   member   = "serviceAccount:${google_service_account.gke_node_sa.email}"
+}
+
+# Grant the Artifact Registry Reader role to the GKE Node Service Account
+# scoped specifically to the 'fastapi-ai' repository.
+resource "google_artifact_registry_repository_iam_member" "fastapi_ai_reader" {
+  project    = data.google_artifact_registry_repository.fastapi_ai_repo.project
+  location   = data.google_artifact_registry_repository.fastapi_ai_repo.location
+  repository = data.google_artifact_registry_repository.fastapi_ai_repo.repository_id
+  
+  role   = "roles/artifactregistry.reader"
+  member = "serviceAccount:${google_service_account.gke_node_sa.email}"
 }

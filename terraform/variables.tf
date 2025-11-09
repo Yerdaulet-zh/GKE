@@ -79,3 +79,10 @@ variable "kms_key_ring" {
   type        = string
   sensitive   = true
 }
+
+# Artifact Registry Related Variables
+variable "repository_id" {
+  description = "The name of the Artifact Registry repository."
+  type        = string
+  sensitive   = true
+}
